@@ -21,6 +21,7 @@ var host = new HostBuilder()
         services.AddHttpClient();
 
         // Providers/Engine
+        services.AddSingleton<GraphHttp>();
         services.AddSingleton<IChecklistProvider, HttpChecklistProvider>();
         services.AddSingleton<ExecutionRouter>();
 

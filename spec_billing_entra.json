@@ -1,0 +1,68 @@
+{
+  "specVersion": "1.0.0",
+  "category": "Azure Billing and Microsoft Entra ID Tenants",
+  "profile": "baseline",
+  "defaults": { "scope": "tenant", "severity": "High", "coverage": "Auto", "attestation": { "enabled": true, "expiresDays": 180 } },
+  "checks": [
+    {
+      "id": "ENTRA-DOMAINS-VERIFIED",
+      "title": "Domínios do tenant verificados",
+      "severity": "High",
+      "executor": "graph",
+      "sources": ["Graph.v1.Domains"],
+      "logic": {
+        "allOf": [
+          { "equals": { "path": "$.domains.length()", "value": 1 } },
+          { "equals": { "path": "$.domains[?(@.isVerified==false)].length()", "value": 0 } }
+        ]
+      },
+      "evidence": {
+        "summaryTemplate": "Domínios verificados.",
+        "linkTemplates": [ "https://portal.azure.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/CustomDomainNames" ]
+      }
+    },
+    {
+      "id": "ENTRA-SECURITY-DEFAULTS-OR-CA",
+      "title": "Security Defaults habilitado OU baseline de Conditional Access",
+      "severity": "High",
+      "executor": "graph",
+      "sources": ["Graph.v1.Policies", "Graph.beta.ConditionalAccess"],
+      "logic": {
+        "anyOf": [
+          { "equals": { "path": "$.policies.securityDefaults.state", "value": "enabled" } },
+          {
+            "allOf": [
+              { "exists": { "path": "$.caPolicies[?(@.state=='enabled')]" } },
+              { "contains": { "path": "$.caPolicies[*].grantControls.builtInControls", "value": "mfa" } },
+              { "contains": { "path": "$.caPolicies[*].conditions.users.includeUsers", "value": "All" } }
+            ]
+          }
+        ]
+      },
+      "evidence": {
+        "summaryTemplate": "Defaults/CA baseline verificados.",
+        "linkTemplates": [
+          "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PoliciesMenuBlade/~/Policies"
+        ]
+      }
+    },
+    {
+      "id": "ENTRA-MFA-REQUIRED-ALL-USERS",
+      "title": "MFA exigido para todos os usuários (com exceções controladas)",
+      "severity": "High",
+      "executor": "graph",
+      "sources": ["Graph.beta.ConditionalAccess"],
+      "logic": {
+        "allOf": [
+          { "contains": { "path": "$.caPolicies[*].grantControls.builtInControls", "value": "mfa" } },
+          { "contains": { "path": "$.caPolicies[*].conditions.users.includeUsers", "value": "All" } },
+          { "lte": { "path": "$.caPolicies[*].conditions.users.excludeUsers.length()", "value": 2 } }
+        ]
+      },
+      "evidence": {
+        "summaryTemplate": "CA MFA global analisada.",
+        "linkTemplates": [ "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PoliciesMenuBlade/~/Policies" ]
+      }
+    }
+  ]
+}

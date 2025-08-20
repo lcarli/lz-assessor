@@ -24,12 +24,27 @@ public class Activities
 
     // 1) Descoberta/snapshot (mínimo por enquanto)
     [Function(nameof(DiscoverActivity))]
-    public Task<DiscoverySnapshot> DiscoverActivity([ActivityTrigger] object? _)
+    public async Task<DiscoverySnapshot> DiscoverActivity([ActivityTrigger] object? _)
     {
-        // TODO: pegar tenantId via ARM/Graph com Managed Identity
-        var tenantId = "00000000-0000-0000-0000-000000000000";
-        var subs = Array.Empty<string>(); // depois populamos
-        return Task.FromResult(new DiscoverySnapshot(tenantId, subs, DateTimeOffset.UtcNow));
+        // Managed Identity / Dev login
+        var cred = new DefaultAzureCredential();
+        var arm = new Azure.ResourceManager.ArmClient(cred);
+
+        // TenantId
+        var tenants = arm.GetTenants().GetAllAsync();
+        string tenantId = "unknown";
+        await foreach (var t in tenants)
+        {
+            tenantId = t.Data.TenantId.ToString();
+            break; // pega o primeiro (geralmente o atual)
+        }
+
+        // Subscriptions
+        var subs = new List<string>();
+        await foreach (var s in arm.GetSubscriptions().GetAllAsync())
+            subs.Add(s.Data.SubscriptionId);
+
+        return new DiscoverySnapshot(tenantId, subs.ToArray(), DateTimeOffset.UtcNow);
     }
 
     // 2) Carregar spec
