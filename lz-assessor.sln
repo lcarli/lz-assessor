@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LzAssessor.Functions", "src\LzAssessor.Functions\LzAssessor.Functions.csproj", "{8D7A6330-FA50-7FCB-658E-76C4B20CABD3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LzAssessor.NewVersion", "src\LzAssessor.NewVersion\LzAssessor.NewVersion.csproj", "{8D7A6330-FA50-7FCB-658E-76C4B20CABD3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
