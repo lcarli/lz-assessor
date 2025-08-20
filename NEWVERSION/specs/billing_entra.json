@@ -1,0 +1,224 @@
+{
+  "specVersion": "2.0.0",
+  "category": "Azure Billing and Microsoft Entra ID Tenants",
+  "profile": "baseline",
+  "defaults": {
+    "scope": "tenant",
+    "severity": "High",
+    "coverage": "Auto",
+    "attestation": {
+      "enabled": true,
+      "expiresDays": 180
+    }
+  },
+  "checks": [
+    {
+      "id": "ENTRA-DOMAINS-VERIFIED",
+      "title": "Todos os domínios do tenant devem estar verificados",
+      "severity": "High",
+      "executor": "graph",
+      "sources": ["Graph.v1.Domains"],
+      "logic": {
+        "allOf": [
+          { "gte": { "path": "$.domains.length()", "value": 1 } },
+          { "equals": { "path": "$.domains[?(@.isVerified==false)].length()", "value": 0 } }
+        ]
+      },
+      "evidence": {
+        "summaryTemplate": "Verificação de domínios do tenant.",
+        "linkTemplates": [
+          "https://portal.azure.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/CustomDomainNames"
+        ]
+      },
+      "remediationHint": "Verificar todos os domínios não verificados no portal do Azure AD."
+    },
+    {
+      "id": "ENTRA-SECURITY-DEFAULTS-OR-CA",
+      "title": "Security Defaults habilitado OU baseline de Conditional Access configurado",
+      "severity": "High",
+      "executor": "graph",
+      "sources": ["Graph.v1.Policies", "Graph.beta.ConditionalAccess"],
+      "logic": {
+        "anyOf": [
+          { "equals": { "path": "$.policies.securityDefaults.state", "value": "enabled" } },
+          {
+            "allOf": [
+              { "exists": { "path": "$.caPolicies[?(@.state=='enabled')]" } },
+              { "contains": { "path": "$.caPolicies[*].grantControls.builtInControls", "value": "mfa" } },
+              { "contains": { "path": "$.caPolicies[*].conditions.users.includeUsers", "value": "All" } }
+            ]
+          }
+        ]
+      },
+      "evidence": {
+        "summaryTemplate": "Verificação de Security Defaults ou baseline de CA.",
+        "linkTemplates": [
+          "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PoliciesMenuBlade/~/Policies",
+          "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/SecurityMenuBlade/~/SecurityDefaults"
+        ]
+      },
+      "remediationHint": "Habilitar Security Defaults ou configurar políticas de Conditional Access com MFA para todos os usuários."
+    },
+    {
+      "id": "ENTRA-MFA-REQUIRED-ALL-USERS",
+      "title": "MFA exigido para todos os usuários com exceções controladas",
+      "severity": "High",
+      "executor": "graph",
+      "sources": ["Graph.beta.ConditionalAccess"],
+      "logic": {
+        "allOf": [
+          { "exists": { "path": "$.caPolicies[?(@.state=='enabled')]" } },
+          { "contains": { "path": "$.caPolicies[*].grantControls.builtInControls", "value": "mfa" } },
+          { "contains": { "path": "$.caPolicies[*].conditions.users.includeUsers", "value": "All" } },
+          { "lte": { "path": "$.caPolicies[*].conditions.users.excludeUsers.length()", "value": 2 } }
+        ]
+      },
+      "evidence": {
+        "summaryTemplate": "Verificação de MFA global com controle de exceções.",
+        "linkTemplates": [
+          "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PoliciesMenuBlade/~/Policies"
+        ]
+      },
+      "remediationHint": "Configurar política de CA exigindo MFA para 'All Users' com no máximo 2 exclusões."
+    },
+    {
+      "id": "ENTRA-PIM-CRITICAL-ROLES",
+      "title": "PIM configurado para roles administrativas críticas",
+      "severity": "High",
+      "executor": "graph",
+      "sources": ["Graph.beta.PrivilegedAccess"],
+      "logic": {
+        "allOf": [
+          { "exists": { "path": "$.privilegedRoles[?(@.displayName=='Global Administrator')]" } },
+          { "exists": { "path": "$.privilegedRoles[?(@.displayName=='Security Administrator')]" } },
+          { "gte": { "path": "$.privilegedRoles[?(@.isActivationRequired==true)].length()", "value": 2 } }
+        ]
+      },
+      "evidence": {
+        "summaryTemplate": "Verificação de PIM para roles críticas.",
+        "linkTemplates": [
+          "https://entra.microsoft.com/#view/Microsoft_Azure_PIMCommon/CommonMenuBlade/~/aadmigratedroles"
+        ]
+      },
+      "fallback": {
+        "manualRequired": true,
+        "reason": "PIM API requires specific permissions and configuration"
+      },
+      "remediationHint": "Configurar PIM para Global Administrator e Security Administrator com ativação obrigatória."
+    },
+    {
+      "id": "ENTRA-SSPR-ENABLED",
+      "title": "Self-Service Password Reset habilitado para todos os usuários",
+      "severity": "Medium",
+      "executor": "graph",
+      "sources": ["Graph.beta.Policies"],
+      "logic": {
+        "equals": { "path": "$.passwordResetPolicies.enablementType", "value": "all" }
+      },
+      "evidence": {
+        "summaryTemplate": "Verificação de SSPR para usuários.",
+        "linkTemplates": [
+          "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/PasswordResetMenuBlade/~/Properties"
+        ]
+      },
+      "fallback": {
+        "manualRequired": true,
+        "reason": "SSPR policy endpoint requires specific API version"
+      },
+      "remediationHint": "Habilitar SSPR para todos os usuários no portal do Azure AD."
+    },
+    {
+      "id": "BILLING-BUDGETS-PER-SUBSCRIPTION",
+      "title": "Budget configurado para cada subscription",
+      "severity": "High",
+      "executor": "cost",
+      "sources": ["Cost.Budgets"],
+      "logic": {
+        "allOf": [
+          { "gte": { "path": "$.budgets.length()", "value": 1 } },
+          { "equals": { "path": "$.budgets[?(@.amount==null)].length()", "value": 0 } }
+        ]
+      },
+      "evidence": {
+        "summaryTemplate": "Verificação de budgets por subscription.",
+        "linkTemplates": [
+          "https://portal.azure.com/#view/Microsoft_Azure_CostManagement/Menu/~/budgets"
+        ]
+      },
+      "fallback": {
+        "manualRequired": true,
+        "reason": "Cost Management API integration not fully implemented"
+      },
+      "remediationHint": "Configurar budgets com alertas para cada subscription ativa."
+    },
+    {
+      "id": "BILLING-COST-EXPORTS",
+      "title": "Export de custos configurado para análise externa",
+      "severity": "Medium",
+      "executor": "cost",
+      "sources": ["Cost.Exports"],
+      "logic": {
+        "gte": { "path": "$.exports.length()", "value": 1 }
+      },
+      "evidence": {
+        "summaryTemplate": "Verificação de exports de custo configurados.",
+        "linkTemplates": [
+          "https://portal.azure.com/#view/Microsoft_Azure_CostManagement/Menu/~/exports"
+        ]
+      },
+      "fallback": {
+        "manualRequired": true,
+        "reason": "Cost Management API integration not fully implemented"
+      },
+      "remediationHint": "Configurar export automático de dados de custo para storage account."
+    },
+    {
+      "id": "BILLING-RBAC-SEPARATION",
+      "title": "Separação de RBAC para funções de billing",
+      "severity": "Medium",
+      "executor": "arm",
+      "sources": ["ARM.RoleAssignments"],
+      "logic": {
+        "allOf": [
+          { "exists": { "path": "$.roleAssignments[?(@.roleDefinitionId contains 'Billing Reader')]" } },
+          { "lte": { "path": "$.roleAssignments[?(@.roleDefinitionId contains 'Owner')].length()", "value": 3 } }
+        ]
+      },
+      "evidence": {
+        "summaryTemplate": "Verificação de separação de funções de billing.",
+        "linkTemplates": [
+          "https://portal.azure.com/#view/Microsoft_Azure_SubscriptionManagement/SubscriptionResourceMenuBlade/~/AccessControl"
+        ]
+      },
+      "fallback": {
+        "manualRequired": true,
+        "reason": "Billing role assignments require specific scope analysis"
+      },
+      "remediationHint": "Configurar roles específicas para billing (Billing Reader) separadas de roles administrativas."
+    },
+    {
+      "id": "ENTRA-LOGS-TO-LOG-ANALYTICS",
+      "title": "Logs do Entra ID enviados para Log Analytics",
+      "severity": "High",
+      "executor": "arm",
+      "sources": ["ARM.DiagnosticSettings"],
+      "logic": {
+        "allOf": [
+          { "exists": { "path": "$.diagnosticSettings[?(@.resourceType=='Microsoft.AAD/domainServices')]" } },
+          { "exists": { "path": "$.diagnosticSettings[*].logs[?(@.enabled==true)]" } }
+        ]
+      },
+      "evidence": {
+        "summaryTemplate": "Verificação de diagnostic settings para Entra ID.",
+        "linkTemplates": [
+          "https://portal.azure.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/DiagnosticSettings"
+        ]
+      },
+      "fallback": {
+        "manualRequired": true,
+        "reason": "Entra ID diagnostic settings require tenant-level configuration"
+      },
+      "remediationHint": "Configurar diagnostic settings para enviar logs de sign-in e audit do Entra ID para Log Analytics."
+    }
+  ]
+}
