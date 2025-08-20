@@ -40,7 +40,7 @@ public sealed class ArmExecutor : IExecutor
                 RawRef: null),
             Metadata: new Dictionary<string, object?>
             {
-                ["executor"] = Name,
+                ["executor"] = "arm",
                 ["sources"] = check.Sources
             }!.ToDictionary(k => k.Key, v => (object)v.Value!),
             UpdatedAt: DateTimeOffset.UtcNow);

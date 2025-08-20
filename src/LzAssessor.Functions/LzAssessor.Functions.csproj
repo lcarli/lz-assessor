@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AzureFunctionsVersion>v4</AzureFunctionsVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.23.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.18.1" OutputItemType="Analyzer" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.2.0" />
+    <!-- DurableTask temporairement commenté pour contourner erreur metadata generator -->
+    <!-- <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.DurableTask" Version="1.1.5" /> -->
+    <!-- <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Timer" Version="4.3.1" /> -->
+    <PackageReference Include="Azure.Identity" Version="1.12.0" />
+    <PackageReference Include="Azure.Core" Version="1.47.2" />
+    <PackageReference Include="Azure.ResourceManager" Version="1.13.2" />
+    <PackageReference Include="Azure.ResourceManager.Resources" Version="1.11.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+  <PropertyGroup>
+    <GenerateFunctionsWorkerExtensionsMetadata>false</GenerateFunctionsWorkerExtensionsMetadata>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <ContinueOnError>true</ContinueOnError>
+    <!-- Force skip metadata generation completely -->
+    <SkipExtensionsMetadataGeneration>true</SkipExtensionsMetadataGeneration>
+    <FunctionsWorkerUseAppHost>false</FunctionsWorkerUseAppHost>
+  </PropertyGroup>
+</Project>

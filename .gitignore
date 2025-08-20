@@ -1,0 +1,78 @@
+# --- Build artefacts ---
+bin/
+obj/
+**/bin/
+**/obj/
+
+# Azure Functions local settings (contient secrets) – ne pas versionner
+local.settings.json
+
+# User secrets / fichiers utilisateur
+*.user
+*.suo
+*.userosscache
+*.sln.iml
+
+# Logs
+logs/
+*.log
+
+# Azurite (émulateur Storage)
+__azurite_db_*.json
+__blobstorage__/
+__queuestorage__/
+__tablestorage__/
+
+# Cache / transients
+*.pid
+*.seed
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+
+# IDE / Outils
+.vs/
+.idea/
+*.iml
+*.ipr
+*.iws
+*.orig
+
+# Rider / JetBrains
+*.sln.iml
+
+# Node (si front-end ajouté plus tard)
+node_modules/
+
+# Coverage & test outputs
+coverage/
+*.coverage
+*.coveragejson
+TestResults/
+
+# Terraform / Bicep intermediaire
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Azure Developer CLI env files (générateurs locaux)
+.azure/
+
+# Packages verrouillés générés par outils (optionnel: commenter si besoin de les suivre)
+# packages.lock.json
+
+# Caches NuGet
+.nuget/
+
+# Dump / crash
+*.dmp
+
+# Exclure fichiers temporaires éditeur
+*~
+*.swp
+*.tmp
+
+# Ne PAS ajouter un wildcard *.json (nous voulons suivre specs JSON)

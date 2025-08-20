@@ -3,33 +3,26 @@ using System.Text.Json;
 using LzAssessor.Functions.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.DurableTask;
 
 namespace LzAssessor.Functions.Orchestration;
 
 public class Triggers
 {
-    // HTTP: start now
-    [Function(nameof(StartAssessmentHttp))]
-    public async Task<HttpResponseData> StartAssessmentHttp(
-        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestData req,
-        [DurableClient] DurableTaskClient client)
+    // HTTP Health check simple
+    [Function(nameof(Health))]
+    public async Task<HttpResponseData> Health([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "health")] HttpRequestData req)
     {
-        var body = await JsonSerializer.DeserializeAsync<AssessmentRequest>(req.Body, new JsonSerializerOptions(JsonSerializerDefaults.Web)) 
-                   ?? new AssessmentRequest();
-
-        var instanceId = await client.ScheduleNewOrchestrationInstanceAsync(nameof(AssessmentOrchestrator.RunAssessmentOrchestrator), body);
-        var resp = req.CreateResponse(HttpStatusCode.Accepted);
-        await resp.WriteStringAsync($"Started orchestration: {instanceId}");
+        var resp = req.CreateResponse(HttpStatusCode.OK);
+        await resp.WriteStringAsync("LZ Assessor Functions is running");
         return resp;
     }
-
-    // TIMER: agenda diária (06:00 UTC)
-    [Function(nameof(ScheduleTimer))]
-    public async Task ScheduleTimer([TimerTrigger("0 0 6 * * *")] TimerInfo _,
-        [DurableClient] DurableTaskClient client)
+    
+    // HTTP Start assessment (sans Durable pour l'instant)
+    [Function(nameof(StartAssessmentHttp))]
+    public async Task<HttpResponseData> StartAssessmentHttp([HttpTrigger(AuthorizationLevel.Function, "post", Route = "assessment/start")] HttpRequestData req)
     {
-        var req = new AssessmentRequest(); // usa defaults do appsettings
-        await client.ScheduleNewOrchestrationInstanceAsync(nameof(AssessmentOrchestrator.RunAssessmentOrchestrator), req);
+        var resp = req.CreateResponse(HttpStatusCode.Accepted);
+        await resp.WriteStringAsync("Assessment start accepted (simplified without orchestration)");
+        return resp;
     }
 }

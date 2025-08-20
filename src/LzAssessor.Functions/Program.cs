@@ -11,12 +11,12 @@ var host = new HostBuilder()
         cfg.AddJsonFile("appsettings.json", optional: true)
            .AddEnvironmentVariables();
     })
-    .ConfigureFunctionsWorkerDefaults(builder =>
-    {
-        builder.AddDurableTask();
-    })
+    .ConfigureFunctionsWorkerDefaults()
     .ConfigureServices((ctx, services) =>
     {
+        // Temporairement sans DurableTask pour contourner erreur metadata
+        // services.AddDurableTaskWorker(builder => { });
+        
         // HttpClient p/ baixar specs
         services.AddHttpClient();
 
