@@ -7,6 +7,9 @@ obj/
 # Azure Functions local settings (contient secrets) – ne pas versionner
 local.settings.json
 
+# Exception: Include template local.settings.json in project folder
+!src/LzAssessor.NewVersion/local.settings.json
+
 # User secrets / fichiers utilisateur
 *.user
 *.suo

@@ -152,6 +152,42 @@ func start
 - **Desenvolvimento**: In-memory
 - **Produção**: Log Analytics (configurar `LogAnalytics:WorkspaceId`)
 
+## Compatibilidade com Apple Silicon (macOS ARM64)
+
+Para resolver problemas de compatibilidade com macOS ARM64, certifique-se de:
+
+### Pré-requisitos
+1. **Azure Functions Core Tools v4** compatível com ARM64:
+   ```bash
+   # Desinstalar versão antiga se necessário
+   npm uninstall -g azure-functions-core-tools
+   
+   # Instalar versão ARM64
+   brew install azure/functions/azure-functions-core-tools@4
+   ```
+
+2. **.NET 8 SDK ARM64**:
+   ```bash
+   # Verificar versão instalada
+   dotnet --version
+   
+   # Deve retornar 8.0.x
+   # Se não, baixar .NET 8 ARM64 de https://dot.net
+   ```
+
+### Troubleshooting
+
+**Erro "incompatible architecture (have 'x86_64', need 'arm64')":**
+1. Limpar cache do NuGet: `dotnet nuget locals all --clear`
+2. Executar com runtime específico: `dotnet run --runtime osx-arm64`
+3. Definir variável de ambiente: `export DOTNET_CLI_ARCHITECTURE=arm64`
+4. Usar func com arquitetura correta: `arch -arm64 func start`
+
+**Se o problema persistir:**
+- Verificar se o Rosetta 2 está instalado: `softwareupdate --install-rosetta`
+- Reinstalar Azure Functions Core Tools via Homebrew
+- Usar Docker como alternativa para desenvolvimento
+
 ## Extensibilidade
 
 ### Novos Checks

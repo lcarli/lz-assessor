@@ -6,6 +6,10 @@
     <Nullable>enable</Nullable>
     <OutputType>Exe</OutputType>
     <RuntimeIdentifiers>win-x64;linux-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
+    <!-- Force ARM64 on macOS when available -->
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' AND '$([System.Runtime.InteropServices.RuntimeInformation]::OSDescription)' != '' AND $([System.Runtime.InteropServices.RuntimeInformation]::OSDescription.Contains('Darwin')) AND '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'Arm64'">osx-arm64</RuntimeIdentifier>
+    <!-- Ensure compatibility with Azure Functions v4 and .NET 8 -->
+    <UseIsolatedRuntime>true</UseIsolatedRuntime>
   </PropertyGroup>
   
   <ItemGroup>
