@@ -101,8 +101,8 @@ public sealed class LogAnalyticsPersistence : IAssessmentPersistence
             // query for detailed results for each run
             foreach (var row in response.Value.Table.Rows)
             {
-                var runId = row[0].ToString();
-                var timestamp = DateTimeOffset.Parse(row[1].ToString());
+                var runId = row[0].ToString() ?? "unknown";
+                var timestamp = DateTimeOffset.Parse(row[1].ToString() ?? DateTimeOffset.UtcNow.ToString());
                 
                 // TODO: Get detailed results for this run
                 var run = new AssessmentRun(
