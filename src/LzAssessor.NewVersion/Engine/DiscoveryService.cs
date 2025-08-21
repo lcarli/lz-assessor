@@ -15,6 +15,11 @@ public interface IDiscoveryService
     /// Discover tenant and subscription information
     /// </summary>
     Task<DiscoverySnapshot> DiscoverAsync(CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Discover tenant and subscription information for a specific tenant
+    /// </summary>
+    Task<DiscoverySnapshot> DiscoverAsync(string tenantId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -35,6 +40,20 @@ public sealed class AzureDiscoveryService : IDiscoveryService
     public async Task<DiscoverySnapshot> DiscoverAsync(CancellationToken cancellationToken = default)
     {
         var tenantId = await GetTenantIdAsync(cancellationToken);
+        var subscriptions = await GetSubscriptionsAsync(cancellationToken);
+        var metadata = await GetMetadataAsync(cancellationToken);
+
+        return new DiscoverySnapshot(
+            TenantId: tenantId,
+            Subscriptions: subscriptions,
+            Metadata: metadata,
+            CapturedAt: DateTimeOffset.UtcNow);
+    }
+
+    public async Task<DiscoverySnapshot> DiscoverAsync(string tenantId, CancellationToken cancellationToken = default)
+    {
+        // When a specific tenant ID is provided, we still discover subscriptions and metadata
+        // but use the provided tenant ID instead of discovering it
         var subscriptions = await GetSubscriptionsAsync(cancellationToken);
         var metadata = await GetMetadataAsync(cancellationToken);
 
