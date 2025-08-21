@@ -44,9 +44,20 @@ public static class SimplifiedTriggers
             logger.LogInformation("Starting assessment run {RunId}", runId);
 
             // Discovery
-            var snapshot = await discoveryService.DiscoverAsync();
-            logger.LogInformation("Discovered tenant {TenantId} with {SubscriptionCount} subscriptions", 
-                snapshot.TenantId, snapshot.Subscriptions.Length);
+            var snapshot = !string.IsNullOrEmpty(request?.TenantId) 
+                ? await discoveryService.DiscoverAsync(request.TenantId)
+                : await discoveryService.DiscoverAsync();
+            
+            if (!string.IsNullOrEmpty(request?.TenantId))
+            {
+                logger.LogInformation("Using specified tenant {TenantId} with {SubscriptionCount} subscriptions", 
+                    snapshot.TenantId, snapshot.Subscriptions.Length);
+            }
+            else
+            {
+                logger.LogInformation("Discovered tenant {TenantId} with {SubscriptionCount} subscriptions", 
+                    snapshot.TenantId, snapshot.Subscriptions.Length);
+            }
 
             // Load spec
             var spec = await specLoader.LoadAsync(request?.SpecUrl);
