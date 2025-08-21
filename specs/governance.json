@@ -1,0 +1,61 @@
+{
+  "specVersion": "2.0.0",
+  "category": "Governance",
+  "profile": "baseline",
+  "defaults": {
+    "scope": "tenant",
+    "severity": "High",
+    "coverage": "Manual",
+    "attestation": {
+      "enabled": true,
+      "expiresDays": 180
+    }
+  },
+  "checks": [
+    {
+      "id": "GOVERNANCE-POLICIES",
+      "title": "Azure Policy governance framework implemented",
+      "severity": "High",
+      "executor": "manual",
+      "sources": [],
+      "fallback": {
+        "manualRequired": true,
+        "reason": "Policy governance requires manual assessment"
+      },
+      "evidence": {
+        "summaryTemplate": "Manual assessment required for Azure Policy governance."
+      },
+      "remediationHint": "Implement comprehensive Azure Policy governance framework."
+    },
+    {
+      "id": "GOVERNANCE-COMPLIANCE",
+      "title": "Compliance monitoring and reporting",
+      "severity": "High",
+      "executor": "manual",
+      "sources": [],
+      "fallback": {
+        "manualRequired": true,
+        "reason": "Compliance monitoring requires manual assessment"
+      },
+      "evidence": {
+        "summaryTemplate": "Manual assessment required for compliance monitoring."
+      },
+      "remediationHint": "Establish compliance monitoring and reporting processes."
+    },
+    {
+      "id": "GOVERNANCE-RESOURCE-LOCKS",
+      "title": "Resource locks implemented for critical resources",
+      "severity": "Medium",
+      "executor": "manual",
+      "sources": [],
+      "fallback": {
+        "manualRequired": true,
+        "reason": "Resource locks require manual assessment"
+      },
+      "evidence": {
+        "summaryTemplate": "Manual assessment required for resource locks."
+      },
+      "remediationHint": "Implement resource locks on critical infrastructure components."
+    }
+  ]
+}

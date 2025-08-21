@@ -36,13 +36,22 @@ var host = new HostBuilder()
         services.AddSingleton<ExecutionRouter>();
         services.AddSingleton<IAttestationEvaluationService, AttestationEvaluationService>();
 
-        // Spec loading
-        services.AddSingleton<ISpecLoader, HttpSpecLoader>();
+        // Spec loading - use file loader for local development, HTTP loader for production
+        var useLocalSpecs = string.IsNullOrEmpty(configuration["Assessment:SpecUrl"]);
+        if (useLocalSpecs)
+        {
+            services.AddSingleton<ISpecLoader, FileSpecLoader>();
+        }
+        else
+        {
+            services.AddSingleton<ISpecLoader, HttpSpecLoader>();
+        }
 
         // Executors
         services.AddSingleton<IExecutor, GraphExecutor>();
         services.AddSingleton<IExecutor, ArmExecutor>();
         services.AddSingleton<IExecutor, CostExecutor>();
+        services.AddSingleton<IExecutor, ManualExecutor>();
 
         // Persistence - use in-memory for development, Log Analytics for production
         var useLogAnalytics = !string.IsNullOrEmpty(configuration["LogAnalytics:WorkspaceId"]);

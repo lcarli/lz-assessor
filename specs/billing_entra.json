@@ -30,7 +30,11 @@
           "https://portal.azure.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/CustomDomainNames"
         ]
       },
-      "remediationHint": "Verify all unverified domains in the Azure AD portal."
+      "remediationHint": "Verify all unverified domains in the Azure AD portal.",
+      "metadata": {
+        "contractTypes": ["MicrosoftEntraIDTenants"],
+        "subcategory": "EntraID"
+      }
     },
     {
       "id": "ENTRA-SECURITY-DEFAULTS-OR-CA",
@@ -57,7 +61,11 @@
           "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/SecurityMenuBlade/~/SecurityDefaults"
         ]
       },
-      "remediationHint": "Enable Security Defaults or configure Conditional Access policies with MFA for all users."
+      "remediationHint": "Enable Security Defaults or configure Conditional Access policies with MFA for all users.",
+      "metadata": {
+        "contractTypes": ["MicrosoftEntraIDTenants"],
+        "subcategory": "EntraID"
+      }
     },
     {
       "id": "ENTRA-MFA-REQUIRED-ALL-USERS",
@@ -149,7 +157,11 @@
         "manualRequired": true,
         "reason": "Cost Management API integration not fully implemented"
       },
-      "remediationHint": "Configure budgets with alerts for each active subscription."
+      "remediationHint": "Configure budgets with alerts for each active subscription.",
+      "metadata": {
+        "contractTypes": ["EnterpriseAgreement", "MicrosoftCustomerAgreement", "CloudSolutionProvider"],
+        "subcategory": "CostManagement"
+      }
     },
     {
       "id": "BILLING-COST-EXPORTS",
@@ -170,7 +182,11 @@
         "manualRequired": true,
         "reason": "Cost Management API integration not fully implemented"
       },
-      "remediationHint": "Configure automatic cost data export to storage account."
+      "remediationHint": "Configure automatic cost data export to storage account.",
+      "metadata": {
+        "contractTypes": ["EnterpriseAgreement", "MicrosoftCustomerAgreement"],
+        "subcategory": "CostManagement"
+      }
     },
     {
       "id": "BILLING-RBAC-SEPARATION",
@@ -194,7 +210,11 @@
         "manualRequired": true,
         "reason": "Billing role assignments require specific scope analysis"
       },
-      "remediationHint": "Configure specific billing roles (Billing Reader) separated from administrative roles."
+      "remediationHint": "Configure specific billing roles (Billing Reader) separated from administrative roles.",
+      "metadata": {
+        "contractTypes": ["EnterpriseAgreement", "MicrosoftCustomerAgreement", "CloudSolutionProvider"],
+        "subcategory": "Billing"
+      }
     },
     {
       "id": "ENTRA-LOGS-TO-LOG-ANALYTICS",

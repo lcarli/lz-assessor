@@ -1,0 +1,61 @@
+{
+  "specVersion": "2.0.0",
+  "category": "Network",
+  "profile": "baseline",
+  "defaults": {
+    "scope": "tenant",
+    "severity": "High",
+    "coverage": "Manual",
+    "attestation": {
+      "enabled": true,
+      "expiresDays": 180
+    }
+  },
+  "checks": [
+    {
+      "id": "NETWORK-TOPOLOGY",
+      "title": "Network topology designed for security and connectivity",
+      "severity": "High",
+      "executor": "manual",
+      "sources": [],
+      "fallback": {
+        "manualRequired": true,
+        "reason": "Network topology requires manual assessment"
+      },
+      "evidence": {
+        "summaryTemplate": "Manual assessment required for network topology design."
+      },
+      "remediationHint": "Design secure and scalable network topology with proper segmentation."
+    },
+    {
+      "id": "NETWORK-SEGMENTATION",
+      "title": "Network segmentation implemented",
+      "severity": "High",
+      "executor": "manual",
+      "sources": [],
+      "fallback": {
+        "manualRequired": true,
+        "reason": "Network segmentation requires manual assessment"
+      },
+      "evidence": {
+        "summaryTemplate": "Manual assessment required for network segmentation."
+      },
+      "remediationHint": "Implement proper network segmentation using NSGs and subnets."
+    },
+    {
+      "id": "NETWORK-CONNECTIVITY",
+      "title": "Hybrid connectivity properly configured",
+      "severity": "Medium",
+      "executor": "manual",
+      "sources": [],
+      "fallback": {
+        "manualRequired": true,
+        "reason": "Hybrid connectivity requires manual assessment"
+      },
+      "evidence": {
+        "summaryTemplate": "Manual assessment required for hybrid connectivity."
+      },
+      "remediationHint": "Configure appropriate hybrid connectivity solutions."
+    }
+  ]
+}

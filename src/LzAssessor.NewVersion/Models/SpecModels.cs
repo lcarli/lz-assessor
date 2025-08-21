@@ -41,7 +41,8 @@ public record SpecCheck(
     JsonElement Logic,
     SpecEvidence Evidence,
     SpecFallback? Fallback,
-    string? RemediationHint);
+    string? RemediationHint,
+    Dictionary<string, JsonElement>? Metadata = null);
 
 /// <summary>
 /// Evidence configuration for a check

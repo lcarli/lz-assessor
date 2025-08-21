@@ -1,0 +1,61 @@
+{
+  "specVersion": "2.0.0",
+  "category": "Management",
+  "profile": "baseline",
+  "defaults": {
+    "scope": "tenant",
+    "severity": "High",
+    "coverage": "Manual",
+    "attestation": {
+      "enabled": true,
+      "expiresDays": 180
+    }
+  },
+  "checks": [
+    {
+      "id": "MANAGEMENT-MONITORING",
+      "title": "Comprehensive monitoring and alerting strategy",
+      "severity": "High",
+      "executor": "manual",
+      "sources": [],
+      "fallback": {
+        "manualRequired": true,
+        "reason": "Monitoring strategy requires manual assessment"
+      },
+      "evidence": {
+        "summaryTemplate": "Manual assessment required for monitoring strategy."
+      },
+      "remediationHint": "Implement comprehensive monitoring and alerting across all resources."
+    },
+    {
+      "id": "MANAGEMENT-BACKUP",
+      "title": "Backup and disaster recovery strategy",
+      "severity": "High",
+      "executor": "manual",
+      "sources": [],
+      "fallback": {
+        "manualRequired": true,
+        "reason": "Backup strategy requires manual assessment"
+      },
+      "evidence": {
+        "summaryTemplate": "Manual assessment required for backup and disaster recovery."
+      },
+      "remediationHint": "Establish comprehensive backup and disaster recovery procedures."
+    },
+    {
+      "id": "MANAGEMENT-AUTOMATION",
+      "title": "Management automation and runbooks",
+      "severity": "Medium",
+      "executor": "manual",
+      "sources": [],
+      "fallback": {
+        "manualRequired": true,
+        "reason": "Management automation requires manual assessment"
+      },
+      "evidence": {
+        "summaryTemplate": "Manual assessment required for management automation."
+      },
+      "remediationHint": "Implement management automation and standardized runbooks."
+    }
+  ]
+}
