@@ -210,6 +210,13 @@ func start
 
 This implementation provides a solid foundation for the complete Landing Zone assessment system as specified.
 
+## Deployment
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for complete deployment instructions including:
+- Infrastructure setup (Function App, Log Analytics, Workbook)
+- Permission configuration (Managed Identity, Graph API)
+- Testing and monitoring setup
+
 ## Development on macOS ARM64
 
 If you're developing on Apple Silicon Macs and encounter architecture compatibility issues, see our [macOS ARM64 Setup Guide](docs/MACOS_ARM64_SETUP.md) for detailed troubleshooting steps.
