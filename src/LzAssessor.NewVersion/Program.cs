@@ -34,6 +34,7 @@ var host = new HostBuilder()
         // Core services
         services.AddSingleton<IDiscoveryService, AzureDiscoveryService>();
         services.AddSingleton<ExecutionRouter>();
+        services.AddSingleton<IAttestationEvaluationService, AttestationEvaluationService>();
 
         // Spec loading
         services.AddSingleton<ISpecLoader, HttpSpecLoader>();
@@ -53,6 +54,10 @@ var host = new HostBuilder()
         {
             services.AddSingleton<IAssessmentPersistence, InMemoryPersistence>();
         }
+
+        // Attestation persistence - for now, always use in-memory
+        // TODO: Implement Log Analytics-based attestation persistence
+        services.AddSingleton<IAttestationPersistence, InMemoryAttestationPersistence>();
     })
     .Build();
 
