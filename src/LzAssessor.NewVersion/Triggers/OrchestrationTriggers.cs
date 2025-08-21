@@ -539,12 +539,51 @@ public static class EnhancedOrchestrationTriggers
     private static SpecCheck[] FilterChecksByContractType(SpecCheck[] checks, ContractType contractType, string category)
     {
         // For now, only billing category needs contract type filtering
-        // TODO: Implement actual filtering logic based on subcategories when that metadata is available
         if (category.Contains("Billing", StringComparison.OrdinalIgnoreCase))
         {
-            // For the current implementation, return all billing checks
-            // In the future, this would filter based on check metadata or subcategory
-            return checks;
+            var filteredChecks = new List<SpecCheck>();
+            
+            foreach (var check in checks)
+            {
+                // If no metadata or no contractTypes specified, include the check
+                if (check.Metadata == null || !check.Metadata.ContainsKey("contractTypes"))
+                {
+                    filteredChecks.Add(check);
+                    continue;
+                }
+
+                try
+                {
+                    // Parse the contractTypes array from metadata
+                    var contractTypesElement = check.Metadata["contractTypes"];
+                    if (contractTypesElement.ValueKind == JsonValueKind.Array)
+                    {
+                        var contractTypes = contractTypesElement.EnumerateArray()
+                            .Where(e => e.ValueKind == JsonValueKind.String)
+                            .Select(e => e.GetString())
+                            .Where(s => !string.IsNullOrEmpty(s))
+                            .ToArray();
+
+                        // Include check if it supports the current contract type
+                        if (contractTypes.Contains(contractType.ToString(), StringComparer.OrdinalIgnoreCase))
+                        {
+                            filteredChecks.Add(check);
+                        }
+                    }
+                    else
+                    {
+                        // If contractTypes is not an array, include the check to be safe
+                        filteredChecks.Add(check);
+                    }
+                }
+                catch
+                {
+                    // If there's any error parsing metadata, include the check to be safe
+                    filteredChecks.Add(check);
+                }
+            }
+            
+            return filteredChecks.ToArray();
         }
 
         // For all other categories, return all checks

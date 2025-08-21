@@ -88,6 +88,77 @@ curl -X POST "https://your-function-app.azurewebsites.net/api/assessment/run-orc
     "tenantId": "12345678-1234-1234-1234-123456789abc",
     "specUrl": "https://raw.githubusercontent.com/lcarli/lz-assessor/main/specs/billing_entra.json"
   }'
+
+# Enhanced orchestrator with design areas and contract type filtering
+curl -X POST "https://your-function-app.azurewebsites.net/api/orchestrator/run" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "TenantId": "12345678-1234-1234-1234-123456789123",
+    "ContractType": "EnterpriseAgreement",
+    "DefaultRegion": "canadaeast",
+    "DesignAreas": {
+      "Billing": true,
+      "IAM": false,
+      "ResourceOrganization": false,
+      "Network": false,
+      "Governance": false,
+      "Security": false,
+      "DevOps": false,
+      "Management": false
+    }
+  }'
+
+# All design areas assessment
+curl -X POST "https://your-function-app.azurewebsites.net/api/orchestrator/run" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "TenantId": "12345678-1234-1234-1234-123456789123",
+    "ContractType": "MicrosoftEntraIDTenants",
+    "DefaultRegion": "canadaeast",
+    "DesignAreas": {
+      "Billing": true,
+      "IAM": true,
+      "ResourceOrganization": true,
+      "Network": true,
+      "Governance": true,
+      "Security": true,
+      "DevOps": true,
+      "Management": true
+    }
+  }'
+```
+
+### Enhanced Orchestrator API
+
+The new orchestrator API endpoint accepts a structured request that allows:
+
+- **Contract Type Filtering**: Only questions applicable to the specified contract type are evaluated
+- **Design Area Selection**: Choose which categories to assess (Billing, IAM, Network, etc.)
+- **Regional Configuration**: Specify default Azure region for assessment queries
+
+**Contract Types:**
+- `EnterpriseAgreement`
+- `MicrosoftCustomerAgreement` 
+- `CloudSolutionProvider`
+- `MicrosoftEntraIDTenants`
+
+**Assessment Status Values:**
+- `Fulfilled` - Check verified and compliant
+- `Open` - Action item identified  
+- `Manually` - Manual assessment required
+- `NotRequired` - Not needed for current requirements
+- `NotApplicable` - Not applicable for current design
+- `NotVerified` - Not yet assessed
+
+**Design Areas:**
+- **Billing**: Cost management, budgets, exports (automated assessment)
+- **IAM**: Identity and access management (manual assessment)
+- **ResourceOrganization**: Management groups, naming, tagging (manual assessment)
+- **Network**: Topology, segmentation, connectivity (manual assessment)
+- **Governance**: Policies, compliance, resource locks (manual assessment)
+- **Security**: Defender, key management, incident response (manual assessment)
+- **DevOps**: CI/CD, source control, infrastructure as code (manual assessment)
+- **Management**: Monitoring, backup, automation (manual assessment)
 ```
 
 #### Submitting Manual Attestations
