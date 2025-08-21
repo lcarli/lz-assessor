@@ -25,11 +25,7 @@ var host = new HostBuilder()
         services.AddHttpClient();
 
         // Azure clients
-        services.AddSingleton(provider =>
-        {
-            var credential = new DefaultAzureCredential();
-            return new LogsQueryClient(credential);
-        });
+        services.AddSingleton<LogsQueryClient>(_ => new LogsQueryClient(new DefaultAzureCredential()));
 
         // Core services
         services.AddSingleton<IDiscoveryService, AzureDiscoveryService>();
