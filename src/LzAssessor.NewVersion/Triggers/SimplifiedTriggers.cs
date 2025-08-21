@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Text.Json;
+using System.Web;
 
 namespace LzAssessor.NewVersion.Triggers;
 
@@ -142,6 +143,92 @@ public static class SimplifiedTriggers
         }
         catch (Exception ex)
         {
+            var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse.WriteAsJsonAsync(new { error = ex.Message });
+            return errorResponse;
+        }
+    }
+
+    /// <summary>
+    /// Get latest assessment result
+    /// </summary>
+    [Function(nameof(GetLatestAssessment))]
+    public static async Task<HttpResponseData> GetLatestAssessment(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "assessment/last")] HttpRequestData req,
+        FunctionContext context)
+    {
+        var logger = context.GetLogger(nameof(GetLatestAssessment));
+        
+        try
+        {
+            var query = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
+            var scope = query["scope"] ?? query["tenantId"];
+            
+            if (string.IsNullOrEmpty(scope))
+            {
+                var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badRequestResponse.WriteAsJsonAsync(new { error = "scope or tenantId parameter is required" });
+                return badRequestResponse;
+            }
+
+            logger.LogInformation("Getting latest assessment for scope {Scope}", scope);
+
+            var persistence = context.InstanceServices.GetRequiredService<IAssessmentPersistence>();
+            var latestRun = await persistence.GetLatestAssessmentAsync(scope);
+
+            if (latestRun == null)
+            {
+                var notFoundResponse = req.CreateResponse(HttpStatusCode.NotFound);
+                await notFoundResponse.WriteAsJsonAsync(new
+                {
+                    scope,
+                    message = "No assessment runs found for this scope"
+                });
+                return notFoundResponse;
+            }
+
+            // Build comprehensive response with summary and links
+            var summary = new
+            {
+                runId = latestRun.RunId,
+                tenantId = latestRun.TenantId,
+                specVersion = latestRun.SpecVersion,
+                category = latestRun.Category,
+                status = latestRun.NonCompliantChecks > 0 ? "NonCompliant" : "Compliant",
+                startedAt = latestRun.StartedAt,
+                completedAt = latestRun.CompletedAt,
+                totalChecks = latestRun.TotalChecks,
+                compliantChecks = latestRun.CompliantChecks,
+                nonCompliantChecks = latestRun.NonCompliantChecks,
+                manualChecks = latestRun.ManualChecks,
+                score = latestRun.TotalChecks > 0 
+                    ? Math.Round((double)latestRun.CompliantChecks / latestRun.TotalChecks * 100, 1)
+                    : 0.0,
+                links = new
+                {
+                    workbook = $"https://portal.azure.com/#@{scope}/dashboard/arm/.../LZ-Assessment-Workbook",
+                    history = $"?tenantId={scope}",
+                    portal = "https://portal.azure.com"
+                },
+                results = latestRun.Results.Take(10).Select(result => new
+                {
+                    questionId = result.QuestionId,
+                    title = result.Title,
+                    pillar = result.Pillar,
+                    status = result.Status.ToString(),
+                    severity = result.Severity,
+                    coverage = result.Coverage,
+                    summary = result.Evidence.Summary
+                })
+            };
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(summary);
+            return response;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to get latest assessment");
             var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
             await errorResponse.WriteAsJsonAsync(new { error = ex.Message });
             return errorResponse;

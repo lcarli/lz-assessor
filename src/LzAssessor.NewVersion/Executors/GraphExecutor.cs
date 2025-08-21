@@ -89,13 +89,17 @@ public sealed class GraphExecutor : ExecutorBase
             switch (source)
             {
                 case "Graph.v1.Domains":
-                    var domains = await _graphClient.Domains.GetAsync(cancellationToken: cancellationToken);
+                    var domains = await RetryPolicy.ExecuteWithRetryAsync(async () =>
+                        await _graphClient.Domains.GetAsync(cancellationToken: cancellationToken), 
+                        maxRetries: 3, baseDelayMs: 1000, cancellationToken);
                     result["domains"] = JArray.FromObject(domains?.Value ?? new List<Domain>());
                     break;
 
                 case "Graph.v1.Policies":
-                    // Fetch security defaults
-                    var policies = await _graphClient.Policies.IdentitySecurityDefaultsEnforcementPolicy.GetAsync(cancellationToken: cancellationToken);
+                    // Fetch security defaults with retry
+                    var policies = await RetryPolicy.ExecuteWithRetryAsync(async () =>
+                        await _graphClient.Policies.IdentitySecurityDefaultsEnforcementPolicy.GetAsync(cancellationToken: cancellationToken),
+                        maxRetries: 3, baseDelayMs: 1000, cancellationToken);
                     result["policies"] = new JObject
                     {
                         ["securityDefaults"] = new JObject
@@ -107,8 +111,13 @@ public sealed class GraphExecutor : ExecutorBase
 
                 case "Graph.beta.ConditionalAccess":
                     // Note: This would require beta endpoint configuration
-                    // For now, we'll simulate the data structure
-                    result["caPolicies"] = new JArray();
+                    // For now, we'll simulate the data structure with retry protection
+                    await RetryPolicy.ExecuteWithRetryAsync(async () =>
+                    {
+                        await Task.Delay(100, cancellationToken); // Simulate API call
+                        result["caPolicies"] = new JArray();
+                        return;
+                    }, maxRetries: 2, baseDelayMs: 500, cancellationToken);
                     break;
 
                 default:
