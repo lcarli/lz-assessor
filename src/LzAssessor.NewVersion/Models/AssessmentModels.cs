@@ -19,6 +19,39 @@ public record AssessmentRequest(
     string RunId = "");
 
 /// <summary>
+/// Enhanced orchestrator request with design areas and contract type
+/// </summary>
+public record OrchestratorRequest(
+    string TenantId,
+    ContractType ContractType,
+    string DefaultRegion,
+    DesignAreas DesignAreas);
+
+/// <summary>
+/// Contract types for billing assessment filtering
+/// </summary>
+public enum ContractType
+{
+    EnterpriseAgreement,
+    MicrosoftCustomerAgreement,
+    CloudSolutionProvider,
+    MicrosoftEntraIDTenants
+}
+
+/// <summary>
+/// Design areas configuration for assessment
+/// </summary>
+public record DesignAreas(
+    bool Billing = false,
+    bool IAM = false,
+    bool ResourceOrganization = false,
+    bool Network = false,
+    bool Governance = false,
+    bool Security = false,
+    bool DevOps = false,
+    bool Management = false);
+
+/// <summary>
 /// Result of a single check evaluation
 /// </summary>
 public record AssessmentResult(
@@ -45,7 +78,12 @@ public enum AssessmentStatus
     ManualRequired,
     NotApplicable,
     Exempted,
-    Error
+    Error,
+    NotVerified,
+    Open,
+    Fulfilled,
+    NotRequired,
+    Manually
 }
 
 /// <summary>

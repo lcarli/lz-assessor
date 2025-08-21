@@ -279,3 +279,275 @@ public record CheckExecutionInput(
 public record AttestationInput(
     string TenantId,
     AssessmentResult[] Results);
+
+/// <summary>
+/// Enhanced orchestrator trigger that accepts the new request format
+/// </summary>
+public static class EnhancedOrchestrationTriggers
+{
+    /// <summary>
+    /// Orchestrator endpoint for the new API format
+    /// </summary>
+    [Function(nameof(StartOrchestratorAssessment))]
+    public static async Task<HttpResponseData> StartOrchestratorAssessment(
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "orchestrator/run")] HttpRequestData req,
+        [DurableClient] DurableTaskClient client,
+        FunctionContext context)
+    {
+        var logger = context.GetLogger(nameof(StartOrchestratorAssessment));
+        
+        try
+        {
+            var requestBody = await req.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(requestBody))
+            {
+                var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badRequestResponse.WriteAsJsonAsync(new { error = "Request body is required" });
+                return badRequestResponse;
+            }
+
+            var orchestratorRequest = JsonSerializer.Deserialize<OrchestratorRequest>(requestBody, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+            if (orchestratorRequest == null)
+            {
+                var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badRequestResponse.WriteAsJsonAsync(new { error = "Invalid request format" });
+                return badRequestResponse;
+            }
+
+            var runId = Guid.NewGuid().ToString();
+            
+            logger.LogInformation("Starting orchestrator assessment {RunId} for tenant {TenantId}", runId, orchestratorRequest.TenantId);
+
+            // Start the enhanced orchestration
+            var instanceId = await client.ScheduleNewOrchestrationInstanceAsync(
+                nameof(OrchestratorAssessmentOrchestrator), 
+                (orchestratorRequest, runId));
+
+            logger.LogInformation("Started orchestration {InstanceId} for run {RunId}", instanceId, runId);
+
+            // Return orchestration status
+            var response = req.CreateResponse(HttpStatusCode.Accepted);
+            await response.WriteAsJsonAsync(new 
+            { 
+                runId, 
+                instanceId,
+                tenantId = orchestratorRequest.TenantId,
+                designAreas = orchestratorRequest.DesignAreas,
+                contractType = orchestratorRequest.ContractType.ToString(),
+                statusQueryGetUri = $"{req.Url.Scheme}://{req.Url.Host}/runtime/webhooks/durabletask/instances/{instanceId}",
+                message = "Enhanced orchestrator assessment started"
+            });
+
+            return response;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to start orchestrator assessment");
+            
+            var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse.WriteAsJsonAsync(new { error = ex.Message });
+            return errorResponse;
+        }
+    }
+
+    /// <summary>
+    /// Enhanced orchestrator for multi-design-area assessment
+    /// </summary>
+    [Function(nameof(OrchestratorAssessmentOrchestrator))]
+    public static async Task<AssessmentRun> OrchestratorAssessmentOrchestrator(
+        [OrchestrationTrigger] TaskOrchestrationContext context)
+    {
+        var logger = context.CreateReplaySafeLogger(nameof(OrchestratorAssessmentOrchestrator));
+        var (orchestratorRequest, runId) = context.GetInput<(OrchestratorRequest, string)>()!;
+
+        logger.LogInformation("Starting enhanced assessment orchestration for run {RunId}, tenant {TenantId}", 
+            runId, orchestratorRequest.TenantId);
+
+        try
+        {
+            // Step 1: Discovery
+            var snapshot = await context.CallActivityAsync<DiscoverySnapshot>(
+                nameof(OrchestrationTriggers.DiscoveryActivity), 
+                orchestratorRequest.TenantId);
+
+            logger.LogInformation("Discovery completed for tenant {TenantId}", snapshot.TenantId);
+
+            // Step 2: Process each enabled design area
+            var allResults = new List<AssessmentResult>();
+            var processedCategories = new List<string>();
+
+            if (orchestratorRequest.DesignAreas.Billing)
+            {
+                var billingResults = await ProcessDesignArea(context, logger, 
+                    runId, snapshot, "billing_entra.json", orchestratorRequest.ContractType);
+                allResults.AddRange(billingResults);
+                processedCategories.Add("Billing");
+            }
+
+            if (orchestratorRequest.DesignAreas.IAM)
+            {
+                var iamResults = await ProcessDesignArea(context, logger, 
+                    runId, snapshot, "iam.json", orchestratorRequest.ContractType);
+                allResults.AddRange(iamResults);
+                processedCategories.Add("IAM");
+            }
+
+            if (orchestratorRequest.DesignAreas.ResourceOrganization)
+            {
+                var resourceOrgResults = await ProcessDesignArea(context, logger, 
+                    runId, snapshot, "resource_organization.json", orchestratorRequest.ContractType);
+                allResults.AddRange(resourceOrgResults);
+                processedCategories.Add("ResourceOrganization");
+            }
+
+            if (orchestratorRequest.DesignAreas.Network)
+            {
+                var networkResults = await ProcessDesignArea(context, logger, 
+                    runId, snapshot, "network.json", orchestratorRequest.ContractType);
+                allResults.AddRange(networkResults);
+                processedCategories.Add("Network");
+            }
+
+            if (orchestratorRequest.DesignAreas.Governance)
+            {
+                var governanceResults = await ProcessDesignArea(context, logger, 
+                    runId, snapshot, "governance.json", orchestratorRequest.ContractType);
+                allResults.AddRange(governanceResults);
+                processedCategories.Add("Governance");
+            }
+
+            if (orchestratorRequest.DesignAreas.Security)
+            {
+                var securityResults = await ProcessDesignArea(context, logger, 
+                    runId, snapshot, "security.json", orchestratorRequest.ContractType);
+                allResults.AddRange(securityResults);
+                processedCategories.Add("Security");
+            }
+
+            if (orchestratorRequest.DesignAreas.DevOps)
+            {
+                var devopsResults = await ProcessDesignArea(context, logger, 
+                    runId, snapshot, "devops.json", orchestratorRequest.ContractType);
+                allResults.AddRange(devopsResults);
+                processedCategories.Add("DevOps");
+            }
+
+            if (orchestratorRequest.DesignAreas.Management)
+            {
+                var managementResults = await ProcessDesignArea(context, logger, 
+                    runId, snapshot, "management.json", orchestratorRequest.ContractType);
+                allResults.AddRange(managementResults);
+                processedCategories.Add("Management");
+            }
+
+            logger.LogInformation("Processed {AreaCount} design areas with {CheckCount} total checks", 
+                processedCategories.Count, allResults.Count);
+
+            // Step 3: Apply attestations to results
+            var enhancedResults = await context.CallActivityAsync<AssessmentResult[]>(
+                nameof(OrchestrationTriggers.ApplyAttestationsActivity), 
+                new AttestationInput(snapshot.TenantId, allResults.ToArray()));
+
+            logger.LogInformation("Applied attestations to {CheckCount} checks", enhancedResults.Length);
+
+            // Step 4: Create assessment run
+            var run = new AssessmentRun(
+                RunId: runId,
+                TenantId: snapshot.TenantId,
+                SpecVersion: "2.0.0-orchestrator",
+                Category: string.Join(", ", processedCategories),
+                Results: enhancedResults,
+                Snapshot: snapshot,
+                StartedAt: context.CurrentUtcDateTime.AddMinutes(-5), // Approximate start time
+                CompletedAt: context.CurrentUtcDateTime,
+                TotalChecks: enhancedResults.Length,
+                CompliantChecks: enhancedResults.Count(r => r.Status == AssessmentStatus.Compliant || r.Status == AssessmentStatus.Fulfilled),
+                NonCompliantChecks: enhancedResults.Count(r => r.Status == AssessmentStatus.NonCompliant || r.Status == AssessmentStatus.Open),
+                ManualChecks: enhancedResults.Count(r => r.Status == AssessmentStatus.ManualRequired || r.Status == AssessmentStatus.Manually));
+
+            // Step 5: Persist results
+            await context.CallActivityAsync(nameof(OrchestrationTriggers.PersistResultsActivity), run);
+
+            logger.LogInformation("Enhanced assessment run {RunId} completed with {CompliantCount}/{TotalCount} compliant checks", 
+                runId, run.CompliantChecks, run.TotalChecks);
+
+            return run;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Enhanced assessment orchestration failed for run {RunId}", runId);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Helper method to process a single design area
+    /// </summary>
+    private static async Task<AssessmentResult[]> ProcessDesignArea(
+        TaskOrchestrationContext context,
+        ILogger logger,
+        string runId,
+        DiscoverySnapshot snapshot,
+        string specFileName,
+        ContractType contractType)
+    {
+        try
+        {
+            // Load specification for this design area
+            var spec = await context.CallActivityAsync<SpecFile>(
+                nameof(OrchestrationTriggers.LoadSpecActivity), 
+                specFileName);
+
+            logger.LogInformation("Loaded spec for {Category} with {CheckCount} checks", 
+                spec.Category, spec.Checks.Count);
+
+            // Filter checks based on contract type (only applies to billing currently)
+            var filteredChecks = FilterChecksByContractType(spec.Checks.ToArray(), contractType, spec.Category);
+
+            if (filteredChecks.Length != spec.Checks.Count)
+            {
+                logger.LogInformation("Filtered {OriginalCount} checks to {FilteredCount} based on contract type {ContractType}", 
+                    spec.Checks.Count, filteredChecks.Length, contractType);
+            }
+
+            // Execute checks
+            var executionInput = new CheckExecutionInput(
+                runId,
+                snapshot.TenantId,
+                "tenant",
+                filteredChecks,
+                snapshot);
+
+            var results = await context.CallActivityAsync<AssessmentResult[]>(
+                nameof(OrchestrationTriggers.ExecuteChecksActivity), 
+                executionInput);
+
+            logger.LogInformation("Executed {CheckCount} checks for {Category}", results.Length, spec.Category);
+
+            return results;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to process design area {SpecFileName}", specFileName);
+            return Array.Empty<AssessmentResult>();
+        }
+    }
+
+    /// <summary>
+    /// Filter checks based on contract type for billing category
+    /// </summary>
+    private static SpecCheck[] FilterChecksByContractType(SpecCheck[] checks, ContractType contractType, string category)
+    {
+        // For now, only billing category needs contract type filtering
+        // TODO: Implement actual filtering logic based on subcategories when that metadata is available
+        if (category.Contains("Billing", StringComparison.OrdinalIgnoreCase))
+        {
+            // For the current implementation, return all billing checks
+            // In the future, this would filter based on check metadata or subcategory
+            return checks;
+        }
+
+        // For all other categories, return all checks
+        return checks;
+    }
+}
