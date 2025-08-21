@@ -14,7 +14,7 @@
   "checks": [
     {
       "id": "ENTRA-DOMAINS-VERIFIED",
-      "title": "Todos os domínios do tenant devem estar verificados",
+      "title": "All tenant domains must be verified",
       "severity": "High",
       "executor": "graph",
       "sources": ["Graph.v1.Domains"],
@@ -25,16 +25,16 @@
         ]
       },
       "evidence": {
-        "summaryTemplate": "Verificação de domínios do tenant.",
+        "summaryTemplate": "Tenant domain verification check.",
         "linkTemplates": [
           "https://portal.azure.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/CustomDomainNames"
         ]
       },
-      "remediationHint": "Verificar todos os domínios não verificados no portal do Azure AD."
+      "remediationHint": "Verify all unverified domains in the Azure AD portal."
     },
     {
       "id": "ENTRA-SECURITY-DEFAULTS-OR-CA",
-      "title": "Security Defaults habilitado OU baseline de Conditional Access configurado",
+      "title": "Security Defaults enabled OR Conditional Access baseline configured",
       "severity": "High",
       "executor": "graph",
       "sources": ["Graph.v1.Policies", "Graph.beta.ConditionalAccess"],
@@ -51,17 +51,17 @@
         ]
       },
       "evidence": {
-        "summaryTemplate": "Verificação de Security Defaults ou baseline de CA.",
+        "summaryTemplate": "Security Defaults or CA baseline verification.",
         "linkTemplates": [
           "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PoliciesMenuBlade/~/Policies",
           "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/SecurityMenuBlade/~/SecurityDefaults"
         ]
       },
-      "remediationHint": "Habilitar Security Defaults ou configurar políticas de Conditional Access com MFA para todos os usuários."
+      "remediationHint": "Enable Security Defaults or configure Conditional Access policies with MFA for all users."
     },
     {
       "id": "ENTRA-MFA-REQUIRED-ALL-USERS",
-      "title": "MFA exigido para todos os usuários com exceções controladas",
+      "title": "MFA required for all users with controlled exceptions",
       "severity": "High",
       "executor": "graph",
       "sources": ["Graph.beta.ConditionalAccess"],
@@ -74,16 +74,16 @@
         ]
       },
       "evidence": {
-        "summaryTemplate": "Verificação de MFA global com controle de exceções.",
+        "summaryTemplate": "Global MFA verification with exception control.",
         "linkTemplates": [
           "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PoliciesMenuBlade/~/Policies"
         ]
       },
-      "remediationHint": "Configurar política de CA exigindo MFA para 'All Users' com no máximo 2 exclusões."
+      "remediationHint": "Configure CA policy requiring MFA for 'All Users' with maximum 2 exclusions."
     },
     {
       "id": "ENTRA-PIM-CRITICAL-ROLES",
-      "title": "PIM configurado para roles administrativas críticas",
+      "title": "PIM configured for critical administrative roles",
       "severity": "High",
       "executor": "graph",
       "sources": ["Graph.beta.PrivilegedAccess"],
@@ -95,7 +95,7 @@
         ]
       },
       "evidence": {
-        "summaryTemplate": "Verificação de PIM para roles críticas.",
+        "summaryTemplate": "PIM verification for critical roles.",
         "linkTemplates": [
           "https://entra.microsoft.com/#view/Microsoft_Azure_PIMCommon/CommonMenuBlade/~/aadmigratedroles"
         ]
@@ -104,11 +104,11 @@
         "manualRequired": true,
         "reason": "PIM API requires specific permissions and configuration"
       },
-      "remediationHint": "Configurar PIM para Global Administrator e Security Administrator com ativação obrigatória."
+      "remediationHint": "Configure PIM for Global Administrator and Security Administrator with mandatory activation."
     },
     {
       "id": "ENTRA-SSPR-ENABLED",
-      "title": "Self-Service Password Reset habilitado para todos os usuários",
+      "title": "Self-Service Password Reset enabled for all users",
       "severity": "Medium",
       "executor": "graph",
       "sources": ["Graph.beta.Policies"],
@@ -116,7 +116,7 @@
         "equals": { "path": "$.passwordResetPolicies.enablementType", "value": "all" }
       },
       "evidence": {
-        "summaryTemplate": "Verificação de SSPR para usuários.",
+        "summaryTemplate": "SSPR verification for users.",
         "linkTemplates": [
           "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/PasswordResetMenuBlade/~/Properties"
         ]
@@ -125,11 +125,11 @@
         "manualRequired": true,
         "reason": "SSPR policy endpoint requires specific API version"
       },
-      "remediationHint": "Habilitar SSPR para todos os usuários no portal do Azure AD."
+      "remediationHint": "Enable SSPR for all users in the Azure AD portal."
     },
     {
       "id": "BILLING-BUDGETS-PER-SUBSCRIPTION",
-      "title": "Budget configurado para cada subscription",
+      "title": "Budget configured for each subscription",
       "severity": "High",
       "executor": "cost",
       "sources": ["Cost.Budgets"],
@@ -140,7 +140,7 @@
         ]
       },
       "evidence": {
-        "summaryTemplate": "Verificação de budgets por subscription.",
+        "summaryTemplate": "Budget verification per subscription.",
         "linkTemplates": [
           "https://portal.azure.com/#view/Microsoft_Azure_CostManagement/Menu/~/budgets"
         ]
@@ -149,11 +149,11 @@
         "manualRequired": true,
         "reason": "Cost Management API integration not fully implemented"
       },
-      "remediationHint": "Configurar budgets com alertas para cada subscription ativa."
+      "remediationHint": "Configure budgets with alerts for each active subscription."
     },
     {
       "id": "BILLING-COST-EXPORTS",
-      "title": "Export de custos configurado para análise externa",
+      "title": "Cost export configured for external analysis",
       "severity": "Medium",
       "executor": "cost",
       "sources": ["Cost.Exports"],
@@ -161,7 +161,7 @@
         "gte": { "path": "$.exports.length()", "value": 1 }
       },
       "evidence": {
-        "summaryTemplate": "Verificação de exports de custo configurados.",
+        "summaryTemplate": "Cost export configuration verification.",
         "linkTemplates": [
           "https://portal.azure.com/#view/Microsoft_Azure_CostManagement/Menu/~/exports"
         ]
@@ -170,11 +170,11 @@
         "manualRequired": true,
         "reason": "Cost Management API integration not fully implemented"
       },
-      "remediationHint": "Configurar export automático de dados de custo para storage account."
+      "remediationHint": "Configure automatic cost data export to storage account."
     },
     {
       "id": "BILLING-RBAC-SEPARATION",
-      "title": "Separação de RBAC para funções de billing",
+      "title": "RBAC separation for billing functions",
       "severity": "Medium",
       "executor": "arm",
       "sources": ["ARM.RoleAssignments"],
@@ -185,7 +185,7 @@
         ]
       },
       "evidence": {
-        "summaryTemplate": "Verificação de separação de funções de billing.",
+        "summaryTemplate": "Billing role separation verification.",
         "linkTemplates": [
           "https://portal.azure.com/#view/Microsoft_Azure_SubscriptionManagement/SubscriptionResourceMenuBlade/~/AccessControl"
         ]
@@ -194,11 +194,11 @@
         "manualRequired": true,
         "reason": "Billing role assignments require specific scope analysis"
       },
-      "remediationHint": "Configurar roles específicas para billing (Billing Reader) separadas de roles administrativas."
+      "remediationHint": "Configure specific billing roles (Billing Reader) separated from administrative roles."
     },
     {
       "id": "ENTRA-LOGS-TO-LOG-ANALYTICS",
-      "title": "Logs do Entra ID enviados para Log Analytics",
+      "title": "Entra ID logs sent to Log Analytics",
       "severity": "High",
       "executor": "arm",
       "sources": ["ARM.DiagnosticSettings"],
@@ -209,7 +209,7 @@
         ]
       },
       "evidence": {
-        "summaryTemplate": "Verificação de diagnostic settings para Entra ID.",
+        "summaryTemplate": "Entra ID diagnostic settings verification.",
         "linkTemplates": [
           "https://portal.azure.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/DiagnosticSettings"
         ]
@@ -218,7 +218,7 @@
         "manualRequired": true,
         "reason": "Entra ID diagnostic settings require tenant-level configuration"
       },
-      "remediationHint": "Configurar diagnostic settings para enviar logs de sign-in e audit do Entra ID para Log Analytics."
+      "remediationHint": "Configure diagnostic settings to send Entra ID sign-in and audit logs to Log Analytics."
     }
   ]
 }
