@@ -55,9 +55,71 @@ lz-assessor/
 
 ## API Endpoints
 
-- **POST** `/api/assessment/run` - Start a new assessment
+### Assessment Endpoints
+
+- **POST** `/api/assessment/run` - Start a new assessment (simplified)
+- **POST** `/api/assessment/run-orchestrated` - Start a new assessment (with orchestration)
 - **GET** `/api/assessment/last?scope={tenantId}` - Get latest assessment results  
 - **GET** `/api/assessment/history?tenantId={tenantId}` - Get assessment history
+
+### Attestation Endpoints
+
+- **POST** `/api/attestation/submit` - Submit a manual attestation
+- **GET** `/api/attestation/tenant?tenantId={tenantId}` - Get attestations for a tenant
+- **GET** `/api/attestation/check?tenantId={tenantId}&checkId={checkId}` - Get attestations for a specific check
+
+### API Usage Examples
+
+#### Running Assessment with Specific Tenant ID
+
+```bash
+# Simple assessment run
+curl -X POST "https://your-function-app.azurewebsites.net/api/assessment/run" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tenantId": "12345678-1234-1234-1234-123456789abc",
+    "runId": "my-custom-run-id"
+  }'
+
+# Orchestrated assessment run (with robust error handling)
+curl -X POST "https://your-function-app.azurewebsites.net/api/assessment/run-orchestrated" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tenantId": "12345678-1234-1234-1234-123456789abc",
+    "specUrl": "https://raw.githubusercontent.com/lcarli/lz-assessor/main/specs/billing_entra.json"
+  }'
+```
+
+#### Submitting Manual Attestations
+
+```bash
+# Submit attestation for a manual check
+curl -X POST "https://your-function-app.azurewebsites.net/api/attestation/submit" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tenantId": "12345678-1234-1234-1234-123456789abc",
+    "checkId": "ENTRA-SECURITY-DEFAULTS-OR-CA",
+    "status": "Compliant",
+    "comments": "Conditional Access policies are properly configured",
+    "attestorName": "John Doe",
+    "attestorEmail": "john.doe@company.com",
+    "evidence": "Screenshots and policy documentation attached",
+    "expirationDays": 90
+  }'
+```
+
+#### Retrieving Assessment Results
+
+```bash
+# Get latest assessment for tenant
+curl "https://your-function-app.azurewebsites.net/api/assessment/last?scope=12345678-1234-1234-1234-123456789abc"
+
+# Get assessment history
+curl "https://your-function-app.azurewebsites.net/api/assessment/history?tenantId=12345678-1234-1234-1234-123456789abc&maxRuns=5"
+
+# Get attestations for tenant
+curl "https://your-function-app.azurewebsites.net/api/attestation/tenant?tenantId=12345678-1234-1234-1234-123456789abc"
+```
 
 ## Infrastructure
 
@@ -196,9 +258,9 @@ func start
 2. ✅ Complete API integration (Graph, Cost Management)
 3. ✅ HTTP endpoints (POST /assessment/run, GET /assessment/last)
 4. ✅ Workbook template for visualization
-5. ⏳ Durable Functions for robust orchestration
+5. ✅ Durable Functions for robust orchestration
 6. ⏳ Real Log Analytics persistence (Data Collection API)
-7. ⏳ Attestations for manual checks
+7. ✅ Attestations for manual checks
 8. ⏳ New categories (Network, Security, etc.)
 
 ## Technical Notes
