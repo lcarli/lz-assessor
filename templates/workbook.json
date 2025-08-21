@@ -1,0 +1,282 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "description": "Azure Workbook for LZ Assessor results visualization"
+  },
+  "parameters": {
+    "workbookDisplayName": {
+      "type": "string",
+      "defaultValue": "LZ Assessment Dashboard",
+      "metadata": {
+        "description": "The friendly name for the workbook that is used in the Gallery or Saved List."
+      }
+    },
+    "workbookType": {
+      "type": "string",
+      "defaultValue": "workbook",
+      "metadata": {
+        "description": "The gallery that the workbook will been shown under."
+      }
+    },
+    "workbookSourceId": {
+      "type": "string",
+      "defaultValue": "Azure Monitor",
+      "metadata": {
+        "description": "The id of resource instance to which the workbook will be associated"
+      }
+    },
+    "workspaceResourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource ID of the Log Analytics workspace"
+      }
+    }
+  },
+  "variables": {
+    "workbookContent": {
+      "version": "Notebook/1.0",
+      "items": [
+        {
+          "type": 1,
+          "content": {
+            "json": "# Landing Zone Assessment Dashboard\r\n\r\nThis workbook provides a comprehensive view of your Azure Landing Zone assessment results.\r\n\r\n---"
+          },
+          "name": "Header"
+        },
+        {
+          "type": 9,
+          "content": {
+            "version": "KqlParameterItem/1.0",
+            "parameters": [
+              {
+                "id": "1f74ed9a-3e2e-44f1-9d80-5c2d6de9e6e8",
+                "version": "KqlParameterItem/1.0",
+                "name": "TenantId",
+                "label": "Tenant ID",
+                "type": 1,
+                "isRequired": true,
+                "value": "",
+                "timeContext": {
+                  "durationMs": 86400000
+                }
+              },
+              {
+                "id": "2f74ed9a-3e2e-44f1-9d80-5c2d6de9e6e8",
+                "version": "KqlParameterItem/1.0",
+                "name": "TimeRange",
+                "label": "Time Range",
+                "type": 4,
+                "isRequired": true,
+                "value": {
+                  "durationMs": 2592000000
+                },
+                "typeSettings": {
+                  "selectableValues": [
+                    {
+                      "durationMs": 300000
+                    },
+                    {
+                      "durationMs": 900000
+                    },
+                    {
+                      "durationMs": 1800000
+                    },
+                    {
+                      "durationMs": 3600000
+                    },
+                    {
+                      "durationMs": 14400000
+                    },
+                    {
+                      "durationMs": 43200000
+                    },
+                    {
+                      "durationMs": 86400000
+                    },
+                    {
+                      "durationMs": 172800000
+                    },
+                    {
+                      "durationMs": 259200000
+                    },
+                    {
+                      "durationMs": 604800000
+                    },
+                    {
+                      "durationMs": 1209600000
+                    },
+                    {
+                      "durationMs": 2419200000
+                    },
+                    {
+                      "durationMs": 2592000000
+                    },
+                    {
+                      "durationMs": 5184000000
+                    },
+                    {
+                      "durationMs": 7776000000
+                    }
+                  ]
+                },
+                "timeContext": {
+                  "durationMs": 86400000
+                }
+              }
+            ],
+            "style": "pills",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          "name": "Parameters"
+        },
+        {
+          "type": 3,
+          "content": {
+            "version": "KqlItem/1.0",
+            "query": "ALZ_Assessment_CL\r\n| where TenantId_s == '{TenantId}'\r\n| summarize \r\n    TotalChecks = dcount(QuestionId_s),\r\n    CompliantChecks = countif(Status_s == \"Compliant\"),\r\n    NonCompliantChecks = countif(Status_s == \"NonCompliant\"),\r\n    ManualChecks = countif(Status_s == \"ManualRequired\"),\r\n    LastRunTime = max(TimeGenerated)\r\n| extend ComplianceScore = round(todouble(CompliantChecks) / todouble(TotalChecks) * 100, 1)\r\n| project \r\n    ['Total Checks'] = TotalChecks,\r\n    ['Compliant'] = CompliantChecks,\r\n    ['Non-Compliant'] = NonCompliantChecks,\r\n    ['Manual Review Required'] = ManualChecks,\r\n    ['Compliance Score %'] = ComplianceScore,\r\n    ['Last Assessment'] = LastRunTime",
+            "size": 0,
+            "title": "Assessment Summary",
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces",
+            "visualization": "table",
+            "gridSettings": {
+              "formatters": [
+                {
+                  "columnMatch": "Compliance Score %",
+                  "formatter": 8,
+                  "formatOptions": {
+                    "min": 0,
+                    "max": 100,
+                    "palette": "redGreen"
+                  }
+                }
+              ]
+            }
+          },
+          "name": "Summary"
+        },
+        {
+          "type": 3,
+          "content": {
+            "version": "KqlItem/1.0",
+            "query": "ALZ_Assessment_CL\r\n| where TenantId_s == '{TenantId}'\r\n| summarize \r\n    CompliantChecks = countif(Status_s == \"Compliant\"),\r\n    NonCompliantChecks = countif(Status_s == \"NonCompliant\"),\r\n    ManualChecks = countif(Status_s == \"ManualRequired\")\r\n    by Pillar_s\r\n| extend Total = CompliantChecks + NonCompliantChecks + ManualChecks\r\n| extend ComplianceScore = round(todouble(CompliantChecks) / todouble(Total) * 100, 1)\r\n| project \r\n    Pillar = Pillar_s,\r\n    ['Compliant'] = CompliantChecks,\r\n    ['Non-Compliant'] = NonCompliantChecks,\r\n    ['Manual'] = ManualChecks,\r\n    ['Total'] = Total,\r\n    ['Score %'] = ComplianceScore\r\n| order by ComplianceScore asc",
+            "size": 0,
+            "title": "Compliance by Pillar",
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces",
+            "visualization": "table",
+            "gridSettings": {
+              "formatters": [
+                {
+                  "columnMatch": "Score %",
+                  "formatter": 8,
+                  "formatOptions": {
+                    "min": 0,
+                    "max": 100,
+                    "palette": "redGreen"
+                  }
+                }
+              ]
+            }
+          },
+          "name": "ByPillar"
+        },
+        {
+          "type": 3,
+          "content": {
+            "version": "KqlItem/1.0",
+            "query": "ALZ_Assessment_CL\r\n| where TenantId_s == '{TenantId}'\r\n| where Status_s == \"NonCompliant\"\r\n| project \r\n    ['Question ID'] = QuestionId_s,\r\n    ['Title'] = Title_s,\r\n    ['Pillar'] = Pillar_s,\r\n    ['Severity'] = Severity_s,\r\n    ['Summary'] = Evidence_Summary_s,\r\n    ['Evaluated At'] = TimeGenerated\r\n| order by Severity_s asc, TimeGenerated desc",
+            "size": 0,
+            "title": "Non-Compliant Items (Gaps)",
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces",
+            "visualization": "table",
+            "gridSettings": {
+              "formatters": [
+                {
+                  "columnMatch": "Severity",
+                  "formatter": 18,
+                  "formatOptions": {
+                    "thresholdsOptions": "colors",
+                    "thresholdsGrid": [
+                      {
+                        "operator": "==",
+                        "thresholdValue": "High",
+                        "representation": "redBright",
+                        "text": "🔴 High"
+                      },
+                      {
+                        "operator": "==",
+                        "thresholdValue": "Medium",
+                        "representation": "yellow",
+                        "text": "🟡 Medium"
+                      },
+                      {
+                        "operator": "==",
+                        "thresholdValue": "Low",
+                        "representation": "green",
+                        "text": "🟢 Low"
+                      },
+                      {
+                        "operator": "Default",
+                        "thresholdValue": null,
+                        "representation": "blue",
+                        "text": "{0}"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "name": "Gaps"
+        },
+        {
+          "type": 3,
+          "content": {
+            "version": "KqlItem/1.0",
+            "query": "ALZ_Assessment_CL\r\n| where TenantId_s == '{TenantId}'\r\n| summarize \r\n    TotalChecks = dcount(QuestionId_s),\r\n    CompliantChecks = countif(Status_s == \"Compliant\")\r\n    by bin(TimeGenerated, 1d)\r\n| extend ComplianceScore = round(todouble(CompliantChecks) / todouble(TotalChecks) * 100, 1)\r\n| project TimeGenerated, ComplianceScore\r\n| order by TimeGenerated asc",
+            "size": 0,
+            "title": "Compliance Trend Over Time",
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces",
+            "visualization": "linechart"
+          },
+          "name": "Timeline"
+        }
+      ],
+      "isLocked": false,
+      "fallbackResourceIds": [
+        "{workspaceResourceId}"
+      ]
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Insights/workbooks",
+      "apiVersion": "2021-03-08",
+      "name": "[guid(resourceGroup().id, parameters('workbookDisplayName'))]",
+      "location": "[resourceGroup().location]",
+      "kind": "shared",
+      "properties": {
+        "displayName": "[parameters('workbookDisplayName')]",
+        "serializedData": "[string(variables('workbookContent'))]",
+        "version": "1.0",
+        "sourceId": "[parameters('workbookSourceId')]",
+        "category": "[parameters('workbookType')]"
+      }
+    }
+  ],
+  "outputs": {
+    "workbookId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Insights/workbooks', guid(resourceGroup().id, parameters('workbookDisplayName')))]"
+    }
+  }
+}

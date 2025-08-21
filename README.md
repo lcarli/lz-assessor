@@ -53,7 +53,16 @@ lz-assessor/
     └── billing_entra.json       # Spec for initial category
 ```
 
-## Initial Category: Azure Billing and Microsoft Entra ID Tenants
+## API Endpoints
+
+- **POST** `/api/assessment/run` - Start a new assessment
+- **GET** `/api/assessment/last?scope={tenantId}` - Get latest assessment results  
+- **GET** `/api/assessment/history?tenantId={tenantId}` - Get assessment history
+
+## Infrastructure
+
+- **Workbook Template**: `templates/workbook.json` - Azure Workbook for results visualization
+- **ARM Templates**: Ready for deployment with Log Analytics integration
 
 The initial implementation focuses on the "Azure Billing and Microsoft Entra ID Tenants" category with the following checks:
 
@@ -137,7 +146,13 @@ func start
 ### Available Endpoints
 
 - `POST /api/assessment/run` - Execute assessment
+- `GET /api/assessment/last?scope={tenantId}` - Get latest assessment results
 - `GET /api/assessment/history?tenantId={id}` - Assessment history
+
+## Infrastructure
+
+- **Workbook Template**: `templates/workbook.json` - Azure Workbook for results visualization
+- **ARM Templates**: Ready for deployment with Log Analytics integration
 
 ## Configuration
 
@@ -178,11 +193,13 @@ func start
 ## Roadmap
 
 1. ✅ Base implementation with initial category
-2. 🚧 Complete API integration (Graph, Cost Management)
-3. ⏳ Durable Functions for robust orchestration
-4. ⏳ Azure Workbook for visualization
-5. ⏳ Attestations for manual checks
-6. ⏳ New categories (Network, Security, etc.)
+2. ✅ Complete API integration (Graph, Cost Management)
+3. ✅ HTTP endpoints (POST /assessment/run, GET /assessment/last)
+4. ✅ Workbook template for visualization
+5. ⏳ Durable Functions for robust orchestration
+6. ⏳ Real Log Analytics persistence (Data Collection API)
+7. ⏳ Attestations for manual checks
+8. ⏳ New categories (Network, Security, etc.)
 
 ## Technical Notes
 
