@@ -323,7 +323,7 @@ func start
 - Different thresholds via spec
 - Baseline/Regulated/Strict
 
-## Roadmap
+## Quick Roadmap Overview
 
 1. ✅ Base implementation with initial category
 2. ✅ Complete API integration (Graph, Cost Management)
@@ -334,33 +334,44 @@ func start
 7. ✅ Attestations for manual checks
 8. ⏳ New categories (Network, Security, etc.)
 
+**📋 See [Detailed Roadmap](docs/ROADMAP.md)** for comprehensive development plans, milestones, and important limitations including AI-generated specification constraints.
+
 ## Technical Notes
 
 - **Zero hardcode**: Rules defined in JSON specs
 - **Versioning**: RunId, SpecVersion, ChecklistCommit
 - **Testability**: Mockable executors with recorded payloads
 - **Observability**: Metrics per executor and coverage
+- **⚠️ AI Limitation**: Specifications cannot be automatically generated using AI tools
 
 This implementation provides a solid foundation for the complete Landing Zone assessment system as specified.
 
-## Deployment
+## Documentation
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for complete deployment instructions including:
-- Infrastructure setup (Function App, Log Analytics, Workbook)
-- Permission configuration (Managed Identity, Graph API)
-- Testing and monitoring setup
+### 📖 Comprehensive Guides
 
-## Development on macOS ARM64
+- **[Architecture Documentation](docs/ARCHITECTURE.md)** - Complete system architecture with visual diagrams and component explanations
+- **[Detailed Workflow](docs/WORKFLOW.md)** - Step-by-step explanation of assessment execution from request to results
+- **[Specification Creation Guide](docs/SPEC_CREATION.md)** - Comprehensive guide for creating new assessment specifications and adding questions
+- **[Project Roadmap](docs/ROADMAP.md)** - Development roadmap with completed milestones, planned features, and important limitations
 
-If you're developing on Apple Silicon Macs and encounter architecture compatibility issues, see our [macOS ARM64 Setup Guide](docs/MACOS_ARM64_SETUP.md) for detailed troubleshooting steps.
+### 🚀 Deployment and Setup
+
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Complete deployment instructions including infrastructure setup, permissions, and monitoring
+- **[macOS ARM64 Setup](docs/MACOS_ARM64_SETUP.md)** - Troubleshooting guide for Apple Silicon development environments
+
+### ⚠️ Important Limitations
+
+**AI-Generated Specifications**: Specifications cannot be automatically generated using AI tools. Each spec must be carefully crafted by human experts who understand compliance requirements, Azure APIs, and business logic. See the [Roadmap](docs/ROADMAP.md) for detailed explanation.
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Make your changes
-4. Ensure tests pass
-5. Submit a pull request
+3. Review the [Specification Creation Guide](docs/SPEC_CREATION.md) for adding new checks
+4. Follow the [Architecture Documentation](docs/ARCHITECTURE.md) for system understanding
+5. Ensure tests pass and documentation is updated
+6. Submit a pull request
 
 ## License
 
